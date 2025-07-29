@@ -9,7 +9,7 @@ class FileReadTool:
         pass
 
     def get_tool(self):
-        return Tool(self._run, name="Read-File", takes_ctx=False, max_retries=2)
+        return Tool(function=self._run, name="Read-File", takes_ctx=False, max_retries=2)
 
     def _run(self, file_path: str, line_number: int = 0, line_count: int = 200) -> str:
         """Read a file and return its contents.

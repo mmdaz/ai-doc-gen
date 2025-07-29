@@ -26,6 +26,8 @@ class AnalyzeHandler(BaseHandler):
                     "exclude_data_flow": self.config.exclude_data_flow,
                     "exclude_dependencies": self.config.exclude_dependencies,
                     "exclude_request_flow": self.config.exclude_request_flow,
+                    "exclude_api_analysis": self.config.exclude_api_analysis,
+                    "exclude_business_logic": self.config.exclude_business_logic,
                     "input": str(self.config.repo_path),
                 }
             )

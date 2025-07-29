@@ -16,6 +16,7 @@ import config
 from utils import Logger, PromptManager
 
 from .tools import FileReadTool, ListFilesTool
+from .tools.code_tool import StructureExtractorTool, ImplementationExtractorTool
 
 
 class AnalyzerAgentConfig(BaseModel):
@@ -25,6 +26,7 @@ class AnalyzerAgentConfig(BaseModel):
     exclude_dependencies: bool = Field(default=False, description="Exclude dependencies analysis")
     exclude_request_flow: bool = Field(default=False, description="Exclude request flow analysis")
     exclude_api_analysis: bool = Field(default=False, description="Exclude api analysis")
+    exclude_business_logic: bool = Field(default=False, description="Exclude business logic analysis")
 
 
 class AnalyzerResult(BaseModel):
@@ -44,6 +46,7 @@ class AnalyzerAgent:
                 self._config.exclude_dependencies,
                 self._config.exclude_request_flow,
                 self._config.exclude_api_analysis,
+                self._config.exclude_business_logic,
             ]
         ):
             raise ValueError("All analysis options are excluded")
@@ -109,6 +112,18 @@ class AnalyzerAgent:
                     agent=self._api_analyzer_agent,
                     user_prompt=self._render_prompt("agents.api_analyzer.user_prompt"),
                     file_path=self._config.repo_path / ".ai" / "docs" / "api_analysis.md",
+                )
+            )
+
+        if not self._config.exclude_business_logic:
+            analysis_files.append(
+                self._config.repo_path / ".ai" / "docs" / "business_logic_analysis.md",
+            )
+            tasks.append(
+                self._run_agent(
+                    agent=self._business_logic_analyzer_agent,
+                    user_prompt=self._render_prompt("agents.business_logic_analyzer.user_prompt"),
+                    file_path=self._config.repo_path / ".ai" / "docs" / "business_logic_analysis.md",
                 )
             )
 
@@ -201,6 +216,8 @@ class AnalyzerAgent:
             tools=[
                 FileReadTool().get_tool(),
                 ListFilesTool().get_tool(),
+                StructureExtractorTool().get_tool(),
+                ImplementationExtractorTool().get_tool(),
             ],
             instrument=True,
         )
@@ -219,6 +236,8 @@ class AnalyzerAgent:
             tools=[
                 FileReadTool().get_tool(),
                 ListFilesTool().get_tool(),
+                StructureExtractorTool().get_tool(),
+                ImplementationExtractorTool().get_tool(),
             ],
             instrument=True,
         )
@@ -237,6 +256,8 @@ class AnalyzerAgent:
             tools=[
                 FileReadTool().get_tool(),
                 ListFilesTool().get_tool(),
+                StructureExtractorTool().get_tool(),
+                ImplementationExtractorTool().get_tool(),
             ],
             instrument=True,
         )
@@ -255,6 +276,8 @@ class AnalyzerAgent:
             tools=[
                 FileReadTool().get_tool(),
                 ListFilesTool().get_tool(),
+                StructureExtractorTool().get_tool(),
+                ImplementationExtractorTool().get_tool(),
             ],
             instrument=True,
         )
@@ -273,8 +296,30 @@ class AnalyzerAgent:
             tools=[
                 FileReadTool().get_tool(),
                 ListFilesTool().get_tool(),
+                StructureExtractorTool().get_tool(),
+                ImplementationExtractorTool().get_tool(),
             ],
             mcp_servers=[],
+            instrument=True,
+        )
+
+    @property
+    def _business_logic_analyzer_agent(self) -> Agent:
+        model, model_settings = self._llm_model
+
+        return Agent(
+            name="Business Logic Analyzer",
+            model=model,
+            model_settings=model_settings,
+            output_type=AnalyzerResult,
+            retries=2,
+            system_prompt=self._render_prompt("agents.business_logic_analyzer.system_prompt"),
+            tools=[
+                FileReadTool().get_tool(),
+                ListFilesTool().get_tool(),
+                StructureExtractorTool().get_tool(),
+                ImplementationExtractorTool().get_tool(),
+            ],
             instrument=True,
         )
 
